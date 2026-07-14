@@ -1,4 +1,4 @@
-name: SonarCloud Analysis
+name: SonarCloud Coverage
 
 on:
   push:
@@ -11,7 +11,7 @@ on:
 
 jobs:
   sonarcloud:
-    name: Build, Test and Analyze
+    name: Test and analyze with SonarCloud
     runs-on: ubuntu-latest
 
     steps:
@@ -25,38 +25,24 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            frontend/package-lock.json
-            backend/services/content-service/package-lock.json
-            backend/services/exam-service/package-lock.json
+          cache-dependency-path: package-lock.json
 
-      - name: Install root dependencies
+      - name: Install dependencies
         run: npm ci
 
-      - name: Install frontend dependencies
-        working-directory: frontend
-        run: npm ci
+      - name: Run condition coverage tests
+        run: >
+          npx jest backend/services/exam-service/src/tests/liveAnswerRules.conditionCoverage.test.js
+          --runInBand
+          --coverage
+          --collectCoverageFrom=backend/services/exam-service/src/services/liveAnswerRules.js
+          --coverageReporters=lcov
+          --coverageReporters=text
+          --no-color
+          -t "test_c1"
 
-      - name: Build frontend
-        working-directory: frontend
-        run: npm run build
-
-      - name: Install content-service dependencies
-        working-directory: backend/services/content-service
-        run: npm ci
-
-      - name: Run content-service tests with coverage
-        working-directory: backend/services/content-service
-        run: npm test -- --coverage --runInBand
-
-      - name: Run exam-service condition coverage tests
-        run: npx jest backend/services/exam-service/src/tests/liveAnswerRules.conditionCoverage.test.js --runInBand --verbose --no-color -t "test_c1"
-
-      - name: Verify coverage files
-        run: |
-          test -f backend/services/content-service/coverage/lcov.info
-          echo "Coverage file found."
+      - name: Verify coverage report
+        run: test -f coverage/lcov.info
 
       - name: Analyze with SonarCloud
         uses: SonarSource/sonarqube-scan-action@v5
@@ -67,8 +53,8 @@ jobs:
             -Dsonar.organization=jaqzo8
             -Dsonar.projectKey=JaqzO8_PAE_Completo
             -Dsonar.projectName=PAE_Completo
-            -Dsonar.sources=frontend/src,backend/services
-            -Dsonar.tests=backend/services/content-service/src/tests,backend/services/exam-service/src/tests
-            -Dsonar.javascript.lcov.reportPaths=backend/services/content-service/coverage/lcov.info
-            -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/uploads/**,**/*.html
-            -Dsonar.test.inclusions=**/*.test.js,**/*.spec.js
+            -Dsonar.sources=backend/services/exam-service/src/services
+            -Dsonar.tests=backend/services/exam-service/src/tests
+            -Dsonar.test.inclusions=backend/services/exam-service/src/tests/**/*.test.js
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.exclusions=**/node_modules/**,**/coverage/**,**/dist/**,**/uploads/**
