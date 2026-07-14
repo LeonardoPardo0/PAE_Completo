@@ -50,8 +50,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.organization=jaqzo8
-            -Dsonar.projectKey=JaqzO8_PAE_Completo
+            -Dsonar.organization=leonardopardo045
+            -Dsonar.projectKey=leonardopardo045_pae
             -Dsonar.projectName=PAE_Completo
             -Dsonar.sources=backend/services/exam-service/src/services
             -Dsonar.inclusions=backend/services/exam-service/src/services/liveAnswerRules.js
