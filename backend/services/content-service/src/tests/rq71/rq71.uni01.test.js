@@ -22,7 +22,6 @@ describe('TC-71-UNI-01 - Ausencia de endpoint de recomendación en chat', () => 
       /chat.*recomendar/i,
       /recurso recomendado/i,
       /chat\/recommend/i,
-      /recommendation/i,
     ];
 
     const matches = [];

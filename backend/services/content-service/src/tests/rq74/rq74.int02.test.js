@@ -67,9 +67,11 @@ describe('TC-74-INT-02 - Actualizar ranking por nuevas descargas', () => {
     const recursoMock = {
       id_recurso: 10,
       id_repositorio: 5,
+      titulo: 'Material de prueba',
       activo: true,
       url_archivo: '/uploads/resources/pdfs/material.pdf',
       url_externa: null,
+      extension: '.pdf',
       increment: jest.fn().mockResolvedValue(true),
       repositorio: repositorioMock,
     };
@@ -81,7 +83,13 @@ describe('TC-74-INT-02 - Actualizar ranking por nuevas descargas', () => {
     expect(Resource.findOne).toHaveBeenCalled();
     expect(recursoMock.increment).toHaveBeenCalledWith('descargas');
     expect(repositorioMock.increment).toHaveBeenCalledWith('cantidad_descargas');
-    expect(res.sendFile).toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      success: true,
+      type: 'file',
+      downloadUrl: '/content/resources/10/file',
+      filename: 'Material de prueba.pdf',
+    });
 
     const rankingMock = [
       {

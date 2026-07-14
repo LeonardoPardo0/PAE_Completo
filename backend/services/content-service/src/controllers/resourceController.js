@@ -3,7 +3,8 @@ const path = require('path');
 const fs = require('fs').promises;
 const config = require('../config/env');
 
-const fileSizeField = Object.keys(Resource.rawAttributes).find((key) => (
+const resourceAttributes = Resource.rawAttributes || {};
+const fileSizeField = Object.keys(resourceAttributes).find((key) => (
     key !== 'url_archivo' && key !== 'extension' && key.endsWith('_archivo')
 ));
 
