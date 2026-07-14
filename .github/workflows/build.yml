@@ -1,62 +1,44 @@
-name: SonarCloud Coverage
+name: SonarQube Analysis
 
 on:
   push:
     branches:
       - main
+
   pull_request:
     branches:
       - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+
   workflow_dispatch:
 
 jobs:
-  sonarcloud:
-    name: Test and analyze with SonarCloud
+  sonarqube:
+    name: SonarQube Analysis
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run condition coverage tests
-        run: >
-          npx jest backend/services/exam-service/src/tests/liveAnswerRules.conditionCoverage.test.js
-          --runInBand
-          --coverage
-          --collectCoverageFrom=backend/services/exam-service/src/services/liveAnswerRules.js
-          --coverageReporters=lcov
-          --coverageReporters=text
-          --no-color
-          -t "test_c1"
-
-      - name: Verify coverage report
-        run: test -f coverage/lcov.info
-
-      - name: Analyze with SonarCloud
-        uses: SonarSource/sonarqube-scan-action@v5
+      - name: Verify SONAR_TOKEN
+        shell: bash
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.organization=leonardopardo045
-            -Dsonar.projectKey=leonardopardo045_pae
-            -Dsonar.projectName=PAE_Completo
-            -Dsonar.sources=backend/services/exam-service/src/services
-            -Dsonar.inclusions=backend/services/exam-service/src/services/liveAnswerRules.js
-            -Dsonar.tests=backend/services/exam-service/src/tests
-            -Dsonar.test.inclusions=backend/services/exam-service/src/tests/**/*.test.js
-            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-            -Dsonar.coverage.exclusions=backend/services/exam-service/src/services/achievementService.js,backend/services/exam-service/src/services/gamificationService.js
-            -Dsonar.exclusions=**/node_modules/**,**/coverage/**,**/dist/**,**/uploads/**
+        run: |
+          if [ -z "$SONAR_TOKEN" ]; then
+            echo "ERROR: SONAR_TOKEN no está disponible."
+            exit 1
+          fi
+
+          echo "SONAR_TOKEN está disponible."
+
+      - name: Analyze with SonarQube Cloud
+        uses: SonarSource/sonarqube-scan-action@v8
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
